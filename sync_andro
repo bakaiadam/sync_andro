@@ -1,0 +1,55 @@
+#!/bin/bash
+#használd a wifi ftp server nevu android appot
+function telomountftp3
+{
+pushd /tmp
+sudo umount telo
+#sudo rm -r telo
+mkdir telo
+for ((i=100;i<110;i++))
+do
+#curlftpfs 192.168.1.101:12345 telo/ -o user=a:a
+#if curlftpfs 192.168.1.${i}:12345 telo/ -o user=a:a
+if curlftpfs 192.168.1.${i}:2221 telo/ -o user=android:android
+then
+return 0
+fi
+done
+return 1
+}
+
+empty()
+{
+((!$#)) && return 0; #ures
+return 1; #nem ures
+}
+
+if ! telomountftp3
+then
+echo no device to mount
+exit 1
+fi
+
+#/tmp/telo/DCIM/100ANDRO/
+sourca="/tmp/telo/DCIM/100ANDRO/*"
+#photos
+sourcb="/tmp/telo/Recordings/*"
+#ASR recorder
+
+if empty $( ls $sourc )
+then
+echo "empty dir,not copying"
+else
+d=$(date "+%F-%T")
+#d="/windows/kepek/$d"
+d="$HOME/android_stuff/$d"
+mkdir -p $d
+rsync -a --info=progress2 --no-i-r $sourca $d && sync && rm $sourca
+rsync -a --info=progress2 --no-i-r $sourcb $d && sync && rm $sourcb
+
+geeqie $d
+#rm $sourc
+fi
+
+#sudo umount /tmp/telo
+
